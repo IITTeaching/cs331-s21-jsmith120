@@ -9,13 +9,28 @@ class AVLTree:
             self.right = right
 
         def rotate_right(self):
+            if(self.balance(self.left) < 0):
+                self.left.rotate_left()
             n = self.left
             self.val, n.val = n.val, self.val
             self.left, n.left, self.right, n.right = n.left, n.right, n, self.right
 
         def rotate_left(self):
             ### BEGIN SOLUTION
+            if(self.balance(self.right) > 0):
+                self.right.rotate_right()
+            n = self.right
+            self.val, n.val = n.val, self.val
+            self.right, n.right, self.left, n.left = n.right, n.left, n, self.left
             ### END SOLUTION
+
+        def balance(self,t):
+            if( AVLTree.Node.height(t.right) - AVLTree.Node.height(t.left) > 0):
+                return -1
+            if( AVLTree.Node.height(t.right) - AVLTree.Node.height(t.left) < 0):
+                return 1
+            else: 
+                return 0
 
         @staticmethod
         def height(n):
@@ -31,16 +46,63 @@ class AVLTree:
     @staticmethod
     def rebalance(t):
         ### BEGIN SOLUTION
+        if(height(t.right)-height(t.left)>1):
+            t.rotate_left()
+        elif(height(t.right)-height(t.left)<-1):
+            t.rotate_right()
+        return t
         ### END SOLUTION
 
     def add(self, val):
         assert(val not in self)
         ### BEGIN SOLUTION
+        def recurAdd(val,t):
+            temp = t
+            if (t != None):
+                if (val > temp.val):
+                    temp.right = recurAdd(val,temp.right)
+                elif (val < temp.val):
+                    temp.left = recurAdd(val,temp.left)
+                temp = self.rebalance(temp)
+                self.size +=1
+                return temp
+            else:
+                t = self.Node(val)
+                return t
+        self.root = recurAdd(val,self.root)  
         ### END SOLUTION
 
     def __delitem__(self, val):
         assert(val in self)
         ### BEGIN SOLUTION
+        def recurDel(t, val):
+            if(t == None):
+                return t
+            elif(t.val > val):
+                t.left = recurDel(t.left, val)
+                AVLTree.rebalance(t)
+                return t
+            elif(t.val < val):
+                t.right = recurDel(t.right, val)
+                AVLTree.rebalance(t)
+                return t
+            else:
+                if(t.left == None and t.right == None):
+                    return None
+                elif(t.left != None and t.right == None):
+                    return t.left
+                elif(t.left == None and t.right != None):
+                    return t.right
+                else:
+                    tp = t.left
+                    while tp.right:
+                        tp = tp.right
+                    t.val = tp.val
+                    t.left = recurDel(t.left, tp.val)
+                    AVLTree.rebalance(t)
+                    return t
+        self.root = recurDel(self.root, val)
+        self.size += -1
         ### END SOLUTION
 
     def __contains__(self, val):
